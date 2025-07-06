@@ -1,29 +1,135 @@
-# Objective: create a generator that streams rows from an SQL database one by one.
+#!/usr/bin/env python3
+"""
+Module for streaming database rows using generators
+"""
 
-# Instructions:
+import mysql.connector
+from mysql.connector import Error
+import os
+from typing import Generator, Dict, Any
 
-# In 0-stream_users.py write a function that uses a generator to fetch rows one by one from the user_data table. You must use the Yield python generator
 
-# Prototype: def stream_users()
-# Your function should have no more than 1 loop
-# (venv)faithokoth@Faiths-MacBook-Pro python-generators-0x00 % cat 1-main.py 
+def stream_users() -> Generator[Dict[str, Any], None, None]:
+    """
+    Generator function that streams rows from user_data table one by one.
+    
+    Yields:
+        Dict[str, Any]: Dictionary containing user data from each row
+    
+    Raises:
+        mysql.connector.Error: If database connection or query fails
+    """
+    connection = None
+    cursor = None
+    
+    try:
+        # Database configuration - modify these values for your setup
+        config = {
+            'host': os.getenv('DB_HOST', 'localhost'),
+            'database': os.getenv('DB_NAME', 'your_database'),
+            'user': os.getenv('DB_USER', 'your_username'),
+            'password': os.getenv('DB_PASSWORD', 'your_password'),
+            'port': int(os.getenv('DB_PORT', '3306')),
+            'charset': 'utf8mb4',
+            'use_unicode': True,
+            'autocommit': True
+        }
+        
+        # Create database connection
+        connection = mysql.connector.connect(**config)
+        
+        if connection.is_connected():
+            cursor = connection.cursor(dictionary=True, buffered=False)
+            
+            # Execute query to fetch all users
+            query = "SELECT * FROM user_data"
+            cursor.execute(query)
+            
+            # Yield rows one by one
+            for row in cursor:
+                yield row
+                
+    except Error as e:
+        print(f"Error while connecting to MySQL: {e}")
+        raise
+    
+    finally:
+        # Clean up resources
+        if cursor:
+            cursor.close()
+        if connection and connection.is_connected():
+            connection.close()
 
-# #!/usr/bin/python3
-# from itertools import islice
-# stream_users = __import__('0-stream_users')
 
-# # iterate over the generator function and print only the first 6 rows
+def stream_users_with_limit(limit: int = None) -> Generator[Dict[str, Any], None, None]:
+    """
+    Generator function that streams limited rows from user_data table.
+    
+    Args:
+        limit (int, optional): Maximum number of rows to fetch
+    
+    Yields:
+        Dict[str, Any]: Dictionary containing user data from each row
+    """
+    connection = None
+    cursor = None
+    
+    try:
+        config = {
+            'host': os.getenv('DB_HOST', 'localhost'),
+            'database': os.getenv('DB_NAME', 'your_database'),
+            'user': os.getenv('DB_USER', 'your_username'),
+            'password': os.getenv('DB_PASSWORD', 'your_password'),
+            'port': int(os.getenv('DB_PORT', '3306')),
+            'charset': 'utf8mb4',
+            'use_unicode': True,
+            'autocommit': True
+        }
+        
+        connection = mysql.connector.connect(**config)
+        
+        if connection.is_connected():
+            cursor = connection.cursor(dictionary=True, buffered=False)
+            
+            # Build query with optional limit
+            query = "SELECT * FROM user_data"
+            if limit:
+                query += f" LIMIT {limit}"
+            
+            cursor.execute(query)
+            
+            # Yield rows one by one
+            for row in cursor:
+                yield row
+                
+    except Error as e:
+        print(f"Error while connecting to MySQL: {e}")
+        raise
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if connection and connection.is_connected():
+            connection.close()
 
-# for user in islice(stream_users(), 6):
-#     print(user)
 
-# (venv) faithokoth@Faiths-MacBook-Pro python-generators-0x00 %./1-main.py
-
-# {'user_id': '00234e50-34eb-4ce2-94ec-26e3fa749796', 'name': 'Dan Altenwerth Jr.', 'email': 'Molly59@gmail.com', 'age': 67}
-# {'user_id': '006bfede-724d-4cdd-a2a6-59700f40d0da', 'name': 'Glenda Wisozk', 'email': 'Miriam21@gmail.com', 'age': 119}
-# {'user_id': '006e1f7f-90c2-45ad-8c1d-1275d594cc88', 'name': 'Daniel Fahey IV', 'email': 'Delia.Lesch11@hotmail.com', 'age': 49}
-# {'user_id': '00af05c9-0a86-419e-8c2d-5fb7e899ae1c', 'name': 'Ronnie Bechtelar', 'email': 'Sandra19@yahoo.com', 'age': 22}
-# {'user_id': '00cc08cc-62f4-4da1-b8e4-f5d9ef5dbbd4', 'name': 'Alma Bechtelar', 'email': 'Shelly_Balistreri22@hotmail.com', 'age': 102}
-# {'user_id': '01187f09-72be-4924-8a2d-150645dcadad', 'name': 'Jonathon Jones', 'email': 'Jody.Quigley-Ziemann33@yahoo.com', 'age': 116}
-
-# (venv) faithokoth@Faiths-MacBook-Pro python-generators-0x00 %
+# Example usage
+if __name__ == "__main__":
+    # Example 1: Stream all users
+    print("Streaming all users:")
+    try:
+        for user in stream_users():
+            print(f"User: {user}")
+            # Process each user here
+            
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    # Example 2: Stream limited users
+    print("\nStreaming first 10 users:")
+    try:
+        for user in stream_users_with_limit(10):
+            print(f"User: {user}")
+            
+    except Exception as e:
+        print(f"Error: {e}")
