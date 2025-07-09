@@ -1,7 +1,6 @@
 import sqlite3
-import functools
 import logging
-
+from datetime import datetime
 #### decorator to lof SQL queries
 
 
@@ -14,8 +13,17 @@ def log_queries(func):
 
     return log_wrapper
 
+def log_query_duration(func):
+    def log_wrapper(*args, **kwargs):
+        start = datetime.now()
+        func(*args, **kwargs)
+        print(f"Query Duration: {(datetime.now() - start).total_seconds() * 1000 }ms")
 
 
+    return log_wrapper
+
+
+@log_query_duration
 @log_queries
 def create_users_table(query):
     conn = sqlite3.connect('users.db')
