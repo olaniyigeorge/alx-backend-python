@@ -6,7 +6,7 @@ def with_db_connection(func):
     def db_wrapper(*args, **kwargs) -> sqlite3.Connection:
         conn = sqlite3.connect('users.db')
         try:
-            result = func(conn, *args, **kwargs)  # Pass conn as first argument
+            result = func(conn, *args, **kwargs) 
             return result
         finally:
             conn.close()
@@ -14,7 +14,7 @@ def with_db_connection(func):
     return db_wrapper
 
 @with_db_connection 
-def get_user_by_id(conn, user_id): 
+def get_user_by_id(conn: sqlite3.Connection, user_id): 
     cursor = conn.cursor() 
     cursor.execute("SELECT * FROM User WHERE user_id = ?", (user_id,)) 
     return cursor.fetchone() 
