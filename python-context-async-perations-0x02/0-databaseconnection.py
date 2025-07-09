@@ -23,6 +23,9 @@ class Sqlite3DatabaseConnection:
 
 
 with Sqlite3DatabaseConnection('users.db') as cursor:
-    cursor.execute("SELECT * FROM User")
+    cursor.execute("SELECT * FROM users")
     results = cursor.fetchall()
     print(results)
+
+
+
