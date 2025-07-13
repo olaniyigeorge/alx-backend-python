@@ -40,9 +40,9 @@ def stream_users() -> Generator[Dict[str, Any], None, None]:
         
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True, buffered=False)
-            
+                    
             # Execute query to fetch all users
-            query = "SELECT * FROM user_data"
+            query = f"SELECT * FROM 'User'"
             cursor.execute(query)
             
             # Yield rows one by one
