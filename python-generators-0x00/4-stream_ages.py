@@ -1,13 +1,28 @@
-# Objective: to use a generator to compute a memory-efficient aggregate function i.e average age for a large dataset
+from seed import connect_to_prodev
 
-# Instruction:
 
-# Implement a generator stream_user_ages() that yields user ages one by one.
+def stream_user_ages():
+    """
+    Generator that yields user ages one by one from the database
+    """
+    connection = connect_to_prodev()
+    cursor = connection.cursor()
+    cursor.execute("SELECT age FROM user_data")
+    for (age,) in cursor:
+        yield age
+    cursor.close()
+    connection.close()
 
-# Use the generator in a different function to calculate the average age without loading the entire dataset into memory
 
-# Your script should print Average age of users: average age
-
-# You must use no more than two loops in your script
-
-# You are not allowed to use the SQL AVERAGE
+def average_user_age():
+    """
+    Computes average age using the stream, without loading all rows
+    """
+    total = 0
+    count = 0
+    for age in stream_user_ages():
+        total += age     
+        count += 1
+    if count == 0:
+        return 0
+    return total / count 

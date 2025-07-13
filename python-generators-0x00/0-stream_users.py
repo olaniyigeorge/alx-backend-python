@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Module for streaming database rows using generators
-"""
-
 import mysql.connector
 from mysql.connector import Error
 import os
@@ -23,7 +18,6 @@ def stream_users() -> Generator[Dict[str, Any], None, None]:
     cursor = None
     
     try:
-        # Database configuration - modify these values for your setup
         config = {
             'host': os.getenv('DB_HOST', 'localhost'),
             'database': os.getenv('DB_NAME', 'your_database'),
@@ -35,13 +29,12 @@ def stream_users() -> Generator[Dict[str, Any], None, None]:
             'autocommit': True
         }
         
-        # Create database connection
         connection = mysql.connector.connect(**config)
         
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True, buffered=False)
                     
-            # Execute query to fetch all users
+            
             query = f"SELECT * FROM 'User'"
             cursor.execute(query)
             
@@ -113,20 +106,18 @@ def stream_users_with_limit(limit: int = None) -> Generator[Dict[str, Any], None
             connection.close()
 
 
-# Example usage
+
 if __name__ == "__main__":
-    # Example 1: Stream all users
-    print("Streaming all users:")
+    print("1. Streaming all users:")
     try:
         for user in stream_users():
             print(f"User: {user}")
-            # Process each user here
+            
             
     except Exception as e:
         print(f"Error: {e}")
     
-    # Example 2: Stream limited users
-    print("\nStreaming first 10 users:")
+    print("\n2. Streaming first 10 users:")
     try:
         for user in stream_users_with_limit(10):
             print(f"User: {user}")
