@@ -6,7 +6,6 @@ from unittest.mock import patch, Mock
 from parameterized import parameterized
 
 class TestAccessNestedMap(unittest.TestCase):
-    
     @parameterized.expand([
         ({"a": 1}, ("a",), 1),
         ({"a": {"b": 2}}, ("a",), {"b": 2}),
@@ -28,7 +27,6 @@ class TestAccessNestedMap(unittest.TestCase):
 
 
 class TestGetJson(unittest.TestCase):
-
     @parameterized.expand([
         ("http://example.com", {"payload": True}),
         ("http://holberton.io", {"payload": False}),
@@ -38,7 +36,6 @@ class TestGetJson(unittest.TestCase):
             mock_response = Mock()
             mock_response.json.return_value = test_payload
             mock_get.return_value = mock_response
-
             result = get_json(test_url)
 
             mock_get.assert_called_once_with(test_url)
@@ -46,12 +43,10 @@ class TestGetJson(unittest.TestCase):
 
 
 class TestMemoize(unittest.TestCase):
-
     def test_memoize(self):
         class TestClass:
             def a_method(self):
                 return 42
-
             @memoize
             def a_property(self):
                 return self.a_method()
