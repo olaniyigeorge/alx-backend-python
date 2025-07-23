@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+    Unit tests for utils.py module.
+"""
+
 from utils import access_nested_map, get_json, memoize
 import unittest
 from unittest.mock import patch, Mock
@@ -7,7 +11,6 @@ from parameterized import parameterized
 
 
 class TestAccessNestedMap(unittest.TestCase):
-
     @parameterized.expand([
         ({"a": 1}, ("a",), 1),
         ({"a": {"b": 2}}, ("a",), {"b": 2}),
@@ -25,6 +28,7 @@ class TestAccessNestedMap(unittest.TestCase):
             access_nested_map(nested_map, path)
 
         self.assertEqual(str(context.exception), repr(path[-1]))
+
 
 class TestGetJson(unittest.TestCase):
     @parameterized.expand([
@@ -66,6 +70,7 @@ class TestMemoize(unittest.TestCase):
             self.assertEqual(result1, 42)
             self.assertEqual(result2, 42)
             mock_method.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
