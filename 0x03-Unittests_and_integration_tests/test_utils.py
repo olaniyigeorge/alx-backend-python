@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
 
 from utils import access_nested_map
-
-
-nested_map={"x": {"y": {"z": 10}}}
-
-path=["x", "y"]
-
-
-print(access_nested_map(nested_map, path)) 
-
-
-
-
-
-
+import unittest
+from parameterized import parameterized
 
 class TestAccessNestedMap(unittest.TestCase):
+    
+    @parameterized.expand([
+        ({"a": 1}, ("a",), 1),
+        ({"a": {"b": 2}}, ("a",), {"b": 2}),
+        ({"a": {"b": 2}}, ("a", "b"), 2),
+    ])
+    def test_access_nested_map(self, nested_map, path, expected):   
+        self.assertEqual(access_nested_map(nested_map, path), expected)
 
-    def test_access_nested_map(self):
-        nested_map={"x": {"y": {"z": 10}}}
-        path=["x", "y"]
-        self.assertEqual(access_nested_map(nested_map, path), 1)
 
+
+if __name__ == "__main__":
+    unittest.main()
