@@ -6,9 +6,10 @@ Unit tests for GithubOrgClient class in client.py.
 
 import unittest
 from unittest.mock import Mock, patch, PropertyMock
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 
 from client import GithubOrgClient
+import fixtures  
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -111,11 +112,11 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.return_value = mock_repos_payload
 
         with patch.object(
-            GithubOrgClient, 
+            GithubOrgClient,
             "_public_repos_url",
             new_callable=PropertyMock
         ) as mock_url:
-            mock_url.return_value="""
+            mock_url.return_value = """
             https://api.github.com/orgs/test_org/repos
             """
             client = GithubOrgClient("test_org")
@@ -138,48 +139,45 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(client.has_license(repo, license_key), expected)
 
 
+@parameterized_class([
+    {
+        "org_payload": fixtures.TEST_PAYLOAD["org_payload"],
+        "repos_payload": fixtures.TEST_PAYLOAD["repos_payload"],
+        "expected_repos": fixtures.TEST_PAYLOAD["expected_repos"],
+        "apache2_repos": fixtures.TEST_PAYLOAD["expected_repos"]
+    }
+])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
-    """
-    Integration tests for GithubOrgClient using fixtures.
-    """
+    """Integration tests for the GithubOrgClient using actual data fixtures."""
 
     @classmethod
     def setUpClass(cls):
-        """
-        Patch requests.get to mock external API responses.
-        """
+        """Patch requests.get to simulate API responses."""
         cls.get_patcher = patch("requests.get")
         mock_get = cls.get_patcher.start()
 
         mock_get.side_effect = [
             Mock(json=Mock(return_value=cls.org_payload)),
-            Mock(json=Mock(return_value=cls.repos_payload))
+            Mock(json=Mock(return_value=cls.repos_payload)),
         ]
 
     @classmethod
     def tearDownClass(cls):
-        """
-        Stop requests.get patch.
-        """
+        """Stop the patched requests.get."""
         cls.get_patcher.stop()
 
     def test_public_repos(self):
-        """
-        Test that public_repos returns the expected list of repos.
-        """
-        client = GithubOrgClient("test_org")
+        """Test that public_repos returns all repository names."""
+        client = GithubOrgClient("google")
         self.assertEqual(client.public_repos(), self.expected_repos)
 
     def test_public_repos_with_license(self):
-        """
-        Test that filtering by license returns only apache2 licensed repos.
-        """
-        client = GithubOrgClient("test_org")
+        """Test that public_repos filters repositories by license key."""
+        client = GithubOrgClient("google")
         self.assertEqual(
             client.public_repos(license="apache-2.0"),
             self.apache2_repos
         )
-
 
 if __name__ == "__main__":
     unittest.main()
