@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch, Mock
 from parameterized import parameterized
 
+
 class TestAccessNestedMap(unittest.TestCase):
 
     @parameterized.expand([
@@ -22,7 +23,7 @@ class TestAccessNestedMap(unittest.TestCase):
     def test_access_nested_map_exception(self, nested_map, path):
         with self.assertRaises(KeyError) as context:
             access_nested_map(nested_map, path)
-        
+
         self.assertEqual(str(context.exception), repr(path[-1]))
 
 class TestGetJson(unittest.TestCase):
@@ -46,15 +47,15 @@ class TestMemoize(unittest.TestCase):
         class TestClass:
             def a_method(self):
                 return 42
-            @memoize
 
+            @memoize
             def a_property(self):
                 return self.a_method()
 
-        with patch.object(TestClass, 
-                          "a_method", 
+        with patch.object(TestClass,
+                          "a_method",
                           return_value=42
-            ) as mock_method:
+        ) as mock_method:
             obj = TestClass()
 
             # First call - should call a_method
@@ -65,8 +66,6 @@ class TestMemoize(unittest.TestCase):
             self.assertEqual(result1, 42)
             self.assertEqual(result2, 42)
             mock_method.assert_called_once()
-
-
 
 if __name__ == "__main__":
     unittest.main()
