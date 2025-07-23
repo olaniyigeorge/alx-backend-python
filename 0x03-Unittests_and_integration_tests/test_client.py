@@ -116,9 +116,9 @@ class TestGithubOrgClient(unittest.TestCase):
             "_public_repos_url",
             new_callable=PropertyMock
         ) as mock_url:
-            mock_url.return_value = """
-            https://api.github.com/orgs/test_org/repos
-            """
+            mock_url.return_value = (
+                "https://api.github.com/orgs/test_org/repos"
+            )
             client = GithubOrgClient("test_org")
             self.assertEqual(client.public_repos(), ["repo1", "repo2"])
 
@@ -141,10 +141,10 @@ class TestGithubOrgClient(unittest.TestCase):
 
 @parameterized_class([
     {
-        "org_payload": fixtures.TEST_PAYLOAD,
-        "repos_payload": fixtures.TEST_PAYLOAD,
-        "expected_repos": fixtures.TEST_PAYLOAD,
-        "apache2_repos": fixtures.TEST_PAYLOAD
+        "org_payload": fixtures.TEST_PAYLOAD[0][0],
+        "repos_payload": fixtures.TEST_PAYLOAD[0][1],
+        "expected_repos": fixtures.TEST_PAYLOAD[0][2],
+        "apache2_repos": fixtures.TEST_PAYLOAD[0][3]
     }
 ])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
@@ -156,10 +156,11 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         cls.get_patcher = patch("requests.get")
         mock_get = cls.get_patcher.start()
 
-        mock_get.side_effect = [
+        mock_get.side_effect = iter([
             Mock(json=Mock(return_value=cls.org_payload)),
             Mock(json=Mock(return_value=cls.repos_payload)),
-        ]
+            Mock(json=Mock(return_value=cls.repos_payload)),
+        ])
 
     @classmethod
     def tearDownClass(cls):
