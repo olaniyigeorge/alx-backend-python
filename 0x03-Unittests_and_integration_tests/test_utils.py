@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
 from utils import access_nested_map, get_json, memoize
-import unittest  
+import unittest
 from unittest.mock import patch, Mock
 from parameterized import parameterized
 
 class TestAccessNestedMap(unittest.TestCase):
+
     @parameterized.expand([
         ({"a": 1}, ("a",), 1),
         ({"a": {"b": 2}}, ("a",), {"b": 2}),
         ({"a": {"b": 2}}, ("a", "b"), 2),
     ])
-    def test_access_nested_map(self, nested_map, path, expected):   
+    def test_access_nested_map(self, nested_map, path, expected):
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
@@ -23,8 +24,6 @@ class TestAccessNestedMap(unittest.TestCase):
             access_nested_map(nested_map, path)
         
         self.assertEqual(str(context.exception), repr(path[-1]))
-
-
 
 class TestGetJson(unittest.TestCase):
     @parameterized.expand([
@@ -48,10 +47,14 @@ class TestMemoize(unittest.TestCase):
             def a_method(self):
                 return 42
             @memoize
+
             def a_property(self):
                 return self.a_method()
 
-        with patch.object(TestClass, "a_method", return_value=42) as mock_method:
+        with patch.object(TestClass, 
+                          "a_method", 
+                          return_value=42
+            ) as mock_method:
             obj = TestClass()
 
             # First call - should call a_method

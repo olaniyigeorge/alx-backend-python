@@ -43,3 +43,28 @@ The `test_access_nested_map_exception` test ensures that a `KeyError` is raised 
 - Uses `@parameterized.expand` to provide multiple invalid paths.
 - Uses `with self.assertRaises(KeyError)` context manager to verify an exception is raised.
 - Asserts that the exception message matches the missing key (`repr(path[-1])`).
+
+
+## 🧠 Memoization Test
+
+The `test_memoize` method tests the `@memoize` decorator from `utils.py`.
+
+### ✅ What it does
+
+- Defines a class with a method `a_method` and a memoized property `a_property`.
+- Uses `unittest.mock.patch.object` to mock `a_method` so its calls can be tracked.
+- Verifies that:
+  - The first call to `a_property` calls `a_method`.
+  - The second call **uses the cached value**.
+  - `a_method` is only called **once** using `assert_called_once()`.
+
+### 🧪 Example Class Under Test
+
+```python
+class TestClass:
+    def a_method(self):
+        return 42
+
+    @memoize
+    def a_property(self):
+        return self.a_method()
