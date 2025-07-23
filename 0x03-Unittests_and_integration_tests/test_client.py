@@ -39,7 +39,9 @@ class TestGithubOrgClient(unittest.TestCase):
         result = client.org
 
         self.assertEqual(result, expected_data)
-        mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
+        mock_get_json.assert_called_once_with(
+            f"https://api.github.com/orgs/{org_name}"
+        )
 
     def test_public_repos_url(self):
         """
@@ -88,7 +90,11 @@ class TestGithubOrgClient(unittest.TestCase):
         Test _public_repos_url returns correct repos_url.
         """
         expected_url = "https://api.github.com/orgs/test_org/repos"
-        with patch.object(GithubOrgClient, "org", new_callable=PropertyMock) as mock_org:
+        with patch.object(
+            GithubOrgClient, 
+            "org", 
+            new_callable=PropertyMock
+        ) as mock_org:
             mock_org.return_value = {"repos_url": expected_url}
             client = GithubOrgClient("test_org")
             self.assertEqual(client._public_repos_url, expected_url)
@@ -125,7 +131,6 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         client = GithubOrgClient("test_org")
         self.assertEqual(client.has_license(repo, license_key), expected)
-
 
 
 class TestIntegrationGithubOrgClient(unittest.TestCase):
