@@ -101,3 +101,6 @@ def insert_data(connection, csv_file):
         print(f"CSV file {csv_file} not found.")
     except mysql.connector.Error as err:
         print(f"Insertion error: {err}")
+
+
+
