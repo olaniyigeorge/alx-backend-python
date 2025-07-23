@@ -10,17 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import environ
 from pathlib import Path
+
+
+
+# Initialize environment variables
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+print(f"\n {BASE_DIR} \n")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nayp&ah9#+4lrja2@gb8ugl9qyw%h$jet)o%5121qmb8@1k$sx'
+SECRET_KEY = 'django-insecure-yji56(#x5pq7n1m4n8$)*&2_(@@hdcz%o*_8@j2slj6#^+q5^g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,8 +47,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'corsheaders',
+
+    # Third party apps
     'rest_framework',
+    'corsheaders',
+    'drf_yasg',
+    
+    # Local apps
+    'messaging_app.chats',
+
 ]
 
 MIDDLEWARE = [
@@ -82,6 +98,18 @@ DATABASES = {
     }
 }
 
+if env('ENV', default='dev') == 'prod':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT'),
+        }
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -123,3 +151,21 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+# CORS Headers
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOW_CREDENTIALS = True
+
+# Celery Configuration
+CELERY_BROKER_URL = 'pyamqp://guest@localhost//'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
