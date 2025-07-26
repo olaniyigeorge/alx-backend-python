@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from chats.models import User, Conversation, Message
 from chats.serializers import (
+    UserCreateSerializer,
     UserSerializer, 
     ConversationSerializer, 
     MessageSerializer
@@ -23,6 +24,12 @@ class UserViewSet(viewsets.ViewSet):
     """
     A simple ViewSet for handling user-related operations.
     """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['role']
+    search_fields = ['email', 'username', 'first_name', 'last_name']
+
 
     def list(self, request):
         users = User.objects.all()
@@ -30,12 +37,15 @@ class UserViewSet(viewsets.ViewSet):
         return Response({"message": "List of users", "data": serializer.data})
 
     def create(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            return Response({"message": "User created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+            user = serializer.save()  # This will call create_user() and hash the password
+            output_serializer = UserSerializer(user)
+            return Response({
+                "message": "User created successfully",
+                "data": output_serializer.data
+            }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ConversationViewSet(viewsets.ViewSet):
     """
@@ -51,6 +61,7 @@ class ConversationViewSet(viewsets.ViewSet):
         serializer = ConversationSerializer(data=request.data)
         if serializer.is_valid():
             conversation = serializer.save()
+            print(f"Conversation created: {conversation}")
             return Response({"message": "Conversation created", "data": serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -88,3 +99,9 @@ class MessageViewSet(viewsets.ViewSet):
         serializer = MessageSerializer(data=data)
         if serializer.is_valid():
             message = serializer.save()
+            return Response({
+                "message": "Message sent",
+                "data": MessageSerializer(message).data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
