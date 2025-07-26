@@ -3,7 +3,7 @@
 
 from rest_framework import serializers
 
-from messaging_app.chats.models import Conversation, Message, User
+from chats.models import Conversation, Message, User
 
 
 

@@ -1,13 +1,9 @@
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
-from chats.models import User
-
-# Create your views here.
-
-
-
+from chats.models import User, Conversation, Message
+from chats.serializers import UserSerializer, ConversationSerializer, MessageSerializer
 
 
 def index(request): 
@@ -23,24 +19,61 @@ class UserViewSet(viewsets.ViewSet):
     """
 
     def list(self, request):
-        """
-        List all chats.
-        """
         users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response({"message": "List of users", "data": serializer.data})
 
-        return JsonResponse(
-            {
-                "message": "List of users",
-                "data": users })
+    def create(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({"message": "User created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def retrieve(self, request, pk=None):
+
+class ConversationViewSet(viewsets.ViewSet):
+    """
+    ViewSet for listing and creating conversations.
+    """
+
+    def list(self, request):
+        conversations = Conversation.objects.all()
+        serializer = ConversationSerializer(conversations, many=True)
+        return Response({"message": "List of conversations", "data": serializer.data})
+
+    def create(self, request):
+        serializer = ConversationSerializer(data=request.data)
+        if serializer.is_valid():
+            conversation = serializer.save()
+            return Response({"message": "Conversation created", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MessageViewSet(viewsets.ViewSet):
+    """
+    ViewSet for listing and sending messages.
+    """
+
+    def list(self, request, conversation_pk=None):
         """
-        Retrieve a specific chat by its ID.
+        Optionally filter messages by conversation.
         """
-        user = User.objects.get(pk=pk)
-        return JsonResponse(
-            {
-                "message": f"User {user.username} details",
-                "data": user
-            }
-        )
+        if conversation_pk:
+            messages = Message.objects.filter(conversation_id=conversation_pk)
+        else:
+            messages = Message.objects.all()
+
+        serializer = MessageSerializer(messages, many=True)
+        return Response({"message": "List of messages", "data": serializer.data})
+
+    def create(self, request, conversation_pk=None):
+        """
+        Send a new message in a specific conversation.
+        """
+        data = request.data.copy()
+        if conversation_pk:
+            data['conversation'] = conversation_pk
+
+        serializer = MessageSerializer(data=data)
+        if serializer.is_valid():
+            message = serializer.save()
