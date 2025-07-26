@@ -1,9 +1,15 @@
-from django.http import HttpResponse, JsonResponse
-from rest_framework import viewsets, status
+from django.http import HttpResponse
+from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 from chats.models import User, Conversation, Message
-from chats.serializers import UserSerializer, ConversationSerializer, MessageSerializer
+from chats.serializers import (
+    UserSerializer, 
+    ConversationSerializer, 
+    MessageSerializer
+)
 
 
 def index(request): 
@@ -53,6 +59,11 @@ class MessageViewSet(viewsets.ViewSet):
     """
     ViewSet for listing and sending messages.
     """
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['conversation', 'sender']
+    search_fields = ['content']
 
     def list(self, request, conversation_pk=None):
         """
