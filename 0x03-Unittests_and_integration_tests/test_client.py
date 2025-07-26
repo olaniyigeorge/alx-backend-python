@@ -7,6 +7,7 @@ Unit tests for GithubOrgClient class in client.py.
 import unittest
 from unittest.mock import Mock, patch, PropertyMock
 from parameterized import parameterized, parameterized_class
+from requests import HTTPError
 
 from client import GithubOrgClient
 import fixtures
@@ -152,19 +153,29 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Patch requests.get to simulate API responses."""
-        cls.get_patcher = patch("requests.get")
-        mock_get = cls.get_patcher.start()
+        """Patch requests.get with URL-based mock responses."""
+        # Important: Add `repos_url` to the org payload to avoid KeyError
+        cls.org_payload["repos_url"] = "https://api.github.com/orgs/google/repos"
 
-        mock_get.side_effect = iter([
-            Mock(json=Mock(return_value=cls.org_payload)),
-            Mock(json=Mock(return_value=cls.repos_payload)),
-            Mock(json=Mock(return_value=cls.repos_payload)),
-        ])
+        route_payload = {
+            "https://api.github.com/orgs/google": cls.org_payload,
+            "https://api.github.com/orgs/google/repos": cls.repos_payload,
+        }
+
+        def get_payload(url):
+            if url in route_payload:
+                return Mock(**{"json.return_value": route_payload[url]})
+            raise HTTPError(f"URL {url} not mocked")
+        
+        cls.get_patcher = patch("requests.get", side_effect=get_payload)
+        cls.get_patcher.start()
 
     @classmethod
     def tearDownClass(cls):
-        """Stop the patched requests.get."""
+        """
+        Stop the patched requests.get. 
+        Removes the class fixtures after running all tests.
+        """
         cls.get_patcher.stop()
 
     def test_public_repos(self):
