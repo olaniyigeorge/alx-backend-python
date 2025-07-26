@@ -155,7 +155,8 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
     def setUpClass(cls):
         """Patch requests.get with URL-based mock responses."""
         # Important: Add `repos_url` to the org payload to avoid KeyError
-        cls.org_payload["repos_url"] = "https://api.github.com/orgs/google/repos"
+        cls.org_payload["repos_url"] = "" \
+        "https://api.github.com/orgs/google/repos"
 
         route_payload = {
             "https://api.github.com/orgs/google": cls.org_payload,
@@ -166,14 +167,14 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
             if url in route_payload:
                 return Mock(**{"json.return_value": route_payload[url]})
             raise HTTPError(f"URL {url} not mocked")
-        
+
         cls.get_patcher = patch("requests.get", side_effect=get_payload)
         cls.get_patcher.start()
 
     @classmethod
     def tearDownClass(cls):
         """
-        Stop the patched requests.get. 
+        Stop the patched requests.get.
         Removes the class fixtures after running all tests.
         """
         cls.get_patcher.stop()
