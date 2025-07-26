@@ -156,7 +156,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """Patch requests.get with URL-based mock responses."""
         # Important: Add `repos_url` to the org payload to avoid KeyError
         cls.org_payload["repos_url"] = "" \
-        "https://api.github.com/orgs/google/repos"
+            "https://api.github.com/orgs/google/repos"
 
         route_payload = {
             "https://api.github.com/orgs/google": cls.org_payload,
