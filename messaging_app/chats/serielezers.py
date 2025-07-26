@@ -26,10 +26,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = [
-            'conversation_id', 'participants', 'messages', 
-            'created_at'
-        ]
+        fields = ['conversation_id', 'participants', 'messages', 'created_at']
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -40,8 +37,5 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = [
-            'message_id', 'sender', 'conversation', 
-            'message_body', 'sent_at'
-        ]
+        fields = ['message_id', 'sender', 'conversation', 'message_body', 'sent_at']
         read_only_fields = ['message_id', 'sent_at']
