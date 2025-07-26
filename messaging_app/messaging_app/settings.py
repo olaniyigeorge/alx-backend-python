@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     
     # Local apps
-    'messaging_app.chats',
+    'chats',
 
 ]
 
@@ -165,11 +165,11 @@ REST_FRAMEWORK = {
 }
 
 
-
+AUTH_USER_MODEL = 'chats.User'
 
 # CORS Headers
 CORS_ALLOWED_ORIGINS = [
-    env('CLIENT_DOMAIN')
+    env('CLIENT_DOMAIN', default='http://localhost:3000'),
 ]
 CORS_ALLOW_CREDENTIALS = True
 
