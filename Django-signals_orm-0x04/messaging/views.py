@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from requests import request
 
 from models import Message
 User = get_user_model()
@@ -76,3 +77,12 @@ def threaded_conversations(request):
     threads = [msg.get_thread() for msg in messages]
 
     return JsonResponse({"threads": threads})
+
+
+
+
+
+unread_msgs = Message.unread.for_user(request.user)
+
+for msg in unread_msgs:
+    print(msg.content, msg.timestamp)

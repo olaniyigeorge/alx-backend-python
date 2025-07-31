@@ -4,6 +4,11 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class UnreadMessagesManager(models.Manager):
+    def for_user(self, user):
+        return self.get_queryset().filter(
+            reciever=user, read=False
+        ).only('id', 'sender', 'content', 'timestamp')
 
 
 class Message(models.Model):
@@ -12,6 +17,7 @@ class Message(models.Model):
     reciever = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=255)
     edited = models.BooleanField(default=False)
+    read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     parent_message = models.ForeignKey(
@@ -21,6 +27,10 @@ class Message(models.Model):
         related_name='replies',
         on_delete=models.CASCADE
     )
+
+    objects = models.Manager()  
+    unread = UnreadMessagesManager()  
+
 
     class Meta:
         db_table = 'message'
