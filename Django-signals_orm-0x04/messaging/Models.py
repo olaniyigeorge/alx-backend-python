@@ -22,10 +22,15 @@ class Message(models.Model):
         def __str__(self):
             return f"Message {self.message_id} from {self.sender} to {self.reciever}"
         
-    def get_edit_history(self):
-        """Returns a list of old content versions for the message."""
-        return list(self.history.values('old_content', 'edited_at').order_by('-edited_at'))
 
+    def get_edit_history(self):
+        """
+        Return a list of previous versions of this message,
+        showing who edited it and when.
+        """
+        return list(
+            self.history.values('old_content', 'edited_at', 'edited_by__username').order_by('-edited_at')
+        )
 class MessageHistory(models.Model):
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
     old_content = models.TextField()
