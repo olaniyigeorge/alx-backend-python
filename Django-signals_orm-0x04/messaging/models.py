@@ -14,6 +14,14 @@ class Message(models.Model):
     edited = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    parent_message = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        related_name='replies',
+        on_delete=models.CASCADE
+    )
+
     class Meta:
         db_table = 'message'
         verbose_name = 'Message'
@@ -31,6 +39,22 @@ class Message(models.Model):
         return list(
             self.history.values('old_content', 'edited_at', 'edited_by__username').order_by('-edited_at')
         )
+    
+    def get_thread(self, level=0):
+        """
+        Recursively fetch all replies in a threaded format.
+        Returns a nested list of dicts with content and replies.
+        """
+        thread = {
+            "message_id": self.message_id,
+            "sender": self.sender.username,
+            "content": self.content,
+            "timestamp": self.timestamp,
+            "replies": [
+                reply.get_thread(level=level+1) for reply in self.replies.all().order_by('timestamp')
+            ]
+        }
+        return thread
 class MessageHistory(models.Model):
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
     old_content = models.TextField()
