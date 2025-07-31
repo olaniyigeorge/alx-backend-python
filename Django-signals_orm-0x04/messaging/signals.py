@@ -1,6 +1,6 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from .models import Message, Notification
+from .models import Message, MessageHistory, Notification
 
 import logging
 
@@ -23,3 +23,22 @@ def push_notification(instance, created, **kwargs):
         notif_data = f"Push notification to {instance.user}: Message {instance.message.id}"
         print(notif_data)
         logger.info(notif_data)
+
+
+#3. Listen for Message post-save and log the message content
+
+# Log and store previous message content before edits
+@receiver(pre_save, sender=Message)
+def save_message_history(sender, instance, **kwargs):
+    if not instance._state.adding:
+        try:
+            old_instance = Message.objects.get(pk=instance.pk)
+            if old_instance.content != instance.content:
+                MessageHistory.objects.create(
+                    message=instance,
+                    old_content=old_instance.content
+                )
+                instance.edited = True
+                logger.info(f"Message {instance.pk} edited. Old content logged.")
+        except Message.DoesNotExist:
+            pass  # New message being created, skip history

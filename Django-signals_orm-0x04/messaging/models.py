@@ -11,8 +11,7 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     reciever = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=255)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
 
 
