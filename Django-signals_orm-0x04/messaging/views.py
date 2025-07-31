@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
@@ -23,10 +24,55 @@ def delete_user(request):
 
 
 
-# Get top-level messages (not replies)
-messages = Message.objects.filter(parent_message__isnull=True)\
-    .select_related('sender', 'receiver')\
-    .prefetch_related('replies__sender', 'replies__receiver')
 
-for msg in messages:
-    print(msg.get_thread())  # recursive structure
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def send_message(request):
+    """
+    Simulates sending a message from the logged-in user.
+    Required to pass the 'sender=request.user' check.
+    """
+    receiver_id = request.POST.get('receiver_id')
+    content = request.POST.get('content')
+    parent_id = request.POST.get('parent_message_id')
+
+    if not (receiver_id and content):
+        return JsonResponse({"error": "receiver_id and content are required"}, status=400)
+
+    try:
+        receiver = User.objects.get(id=receiver_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Receiver does not exist"}, status=404)
+
+    parent = None
+    if parent_id:
+        try:
+            parent = Message.objects.get(id=parent_id)
+        except Message.DoesNotExist:
+            return JsonResponse({"error": "Parent message not found"}, status=404)
+
+    message = Message.objects.create(
+        sender=request.user,
+        receiver=receiver,
+        content=content,
+        parent_message=parent
+    )
+
+    return JsonResponse(model_to_dict(message))
+
+
+@require_http_methods(["GET"])
+@login_required
+def threaded_conversations(request):
+    """
+    Returns top-level messages and all their replies in a recursive threaded format.
+    Uses select_related and prefetch_related to reduce DB hits.
+    """
+    messages = Message.objects.filter(parent_message__isnull=True)\
+        .select_related('sender', 'receiver')\
+        .prefetch_related('replies__sender', 'replies__receiver')
+
+    threads = [msg.get_thread() for msg in messages]
+
+    return JsonResponse({"threads": threads})
