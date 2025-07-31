@@ -18,3 +18,6 @@ class NotificationAdmin(admin.ModelAdmin):
 class MessageHistoryAdmin(admin.ModelAdmin):
     list_display = ('message', 'old_content', 'edited_at')
     search_fields = ('old_content',)
+
+
+
