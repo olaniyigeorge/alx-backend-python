@@ -9,7 +9,7 @@ User = get_user_model()
 class Message(models.Model):
     message_id =  models.AutoField(primary_key=True, unique=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    reciever = models.ForeignKey(User, on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -37,3 +37,4 @@ class Notification(models.Model):
 
         def __str__(self):
             return f"Notification for {self.recipient} regarding Message {self.message.message_id}"
+
