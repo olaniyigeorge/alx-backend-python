@@ -81,8 +81,11 @@ def threaded_conversations(request):
 
 
 
-
-unread_msgs = Message.unread.for_user(request.user)
-
-for msg in unread_msgs:
-    print(msg.content, msg.timestamp)
+@login_required
+def inbox_unread(request):
+    """
+    View to return all unread messages for the current user.
+    """
+    unread_msgs = Message.unread.unread_for_user(request.user)  
+    data = [{"content": msg.content, "timestamp": msg.timestamp} for msg in unread_msgs]
+    return JsonResponse({"unread_messages": data})
