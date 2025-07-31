@@ -1,6 +1,6 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
-from .models import Message, MessageHistory, Notification
+from .models import Message, MessageHistory, Notification, User
 
 import logging
 
@@ -25,9 +25,7 @@ def push_notification(instance, created, **kwargs):
         logger.info(notif_data)
 
 
-#3. Listen for Message post-save and log the message content
-
-# Log and store previous message content before edits
+#3. Log and store previous message content before edits
 @receiver(pre_save, sender=Message)
 def save_message_history(sender, instance, **kwargs):
     if not instance._state.adding:
@@ -42,3 +40,23 @@ def save_message_history(sender, instance, **kwargs):
                 logger.info(f"Message {instance.pk} edited. Old content logged.")
         except Message.DoesNotExist:
             pass  # New message being created, skip history
+
+
+# 4. Delete all related data when a user is deleted
+@receiver(post_delete, sender=User)
+def delete_user_related_data(sender, instance, **kwargs):
+    """
+    Deletes all messages, notifications, and message histories related to the user.
+    This is triggered after a user account is deleted.
+    """
+    # Delete messages sent or received by the user
+    Message.objects.filter(sender=instance).delete()
+    Message.objects.filter(receiver=instance).delete()
+
+    # Delete notifications received by the user
+    Notification.objects.filter(recipient=instance).delete()
+
+    # Delete message histories where user was editor
+    MessageHistory.objects.filter(edited_by=instance).delete()
+
+    logger.info(f"Cleaned up all related data for deleted user {instance.username}")
