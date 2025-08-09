@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 
@@ -11,6 +12,7 @@ from chats.serializers import (
     ConversationSerializer, 
     MessageSerializer
 )
+from messaging_app.chats.permissions import IsParticipantOfConversation
 
 
 def index(request): 
@@ -105,3 +107,34 @@ class MessageViewSet(viewsets.ViewSet):
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]  # Only logged-in users can see users
+
+
+class ConversationViewSet(viewsets.ModelViewSet):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer
+    permission_classes = [IsParticipantOfConversation]
+
+    def get_queryset(self):
+        # Limit to conversations the user participates in
+        return Conversation.objects.filter(participants=self.request.user)
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+    permission_classes = [IsParticipantOfConversation]
+
+    def get_queryset(self):
+        # Limit to messages in conversations the user is part of
+        return Message.objects.filter(conversation__participants=self.request.user)
+
+    def perform_create(self, serializer):
+        # Ensure sender is always the logged-in user
+        serializer.save(sender=self.request.user)
