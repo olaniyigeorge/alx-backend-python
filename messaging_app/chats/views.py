@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 
@@ -12,7 +13,11 @@ from chats.serializers import (
     ConversationSerializer, 
     MessageSerializer
 )
+
+
 from chats.permissions import IsParticipantOfConversation
+from messaging_app.chats.filters import MessageFilter
+from messaging_app.chats.pagination import MessagePagination
 
 
 def index(request): 
@@ -130,6 +135,11 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [IsParticipantOfConversation]
+    pagination_class = MessagePagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = MessageFilter
+    search_fields = ["content"]
+    ordering_fields = ["timestamp"]
 
     def get_queryset(self):
         return Message.objects.filter(conversation__participants=self.request.user)
