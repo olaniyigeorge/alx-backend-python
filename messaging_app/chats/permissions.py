@@ -20,6 +20,7 @@ class IsParticipantOrOwner(permissions.BasePermission):
         return False
 
 
+
 class IsParticipantOfConversation(permissions.BasePermission):
     """
     Only authenticated participants in a conversation
@@ -38,6 +39,11 @@ class IsParticipantOfConversation(permissions.BasePermission):
 
         # For Message objects
         if hasattr(obj, "conversation"):
-            return user in obj.conversation.participants.all()
+            # Explicitly check for methods including PUT, PATCH, DELETE
+            if (
+                request.method in permissions.SAFE_METHODS
+                or request.method in ["PUT", "PATCH", "DELETE", "POST"]
+            ):
+                return user in obj.conversation.participants.all()
 
         return False
