@@ -1,6 +1,7 @@
 from rest_framework_nested.routers import DefaultRouter, NestedDefaultRouter
 from django.urls import path, include
 from chats.views import index, UserViewSet, ConversationViewSet, MessageViewSet
+from chats.auth import jwt_urlpatterns
 
 # Root router
 router = DefaultRouter()
@@ -15,4 +16,5 @@ urlpatterns = [
     path('', index, name='index'),
     path('', include(router.urls)),
     path('', include(conversation_router.urls)),
+    path('', include(jwt_urlpatterns)),  # JWT auth endpoints
 ]
