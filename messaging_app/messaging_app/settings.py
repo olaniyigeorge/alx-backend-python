@@ -15,6 +15,8 @@ import environ
 from pathlib import Path
 
 
+from rest_framework.pagination import PageNumberPagination
+
 
 # Initialize environment variables
 env = environ.Env(
