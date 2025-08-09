@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 
 
 class RequestLoggingMiddleware:
@@ -87,3 +87,29 @@ class OffensiveLanguageMiddleware:
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+    
+
+
+class RolepermissionMiddleware:
+    """
+    Middleware to ensure only users with role 'admin' or 'moderator'
+    can access certain views.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # This assumes request.user is already populated by authentication middleware
+        user = getattr(request, "user", None)
+
+        # Check if the user is authenticated and has a role attribute
+        if not user or not user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=403)
+
+        # Check the role (assuming user.role exists)
+        role = getattr(user, "role", "").lower()
+        if role not in ["admin", "moderator"]:
+            return JsonResponse({"error": "You do not have permission to perform this action"}, status=403)
+
+        return self.get_response(request)
